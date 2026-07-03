@@ -179,7 +179,7 @@
         const video = document.getElementById('video');
         const playerWrapper = document.getElementById('playerWrapper');
         
-        const videoSource = 'https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/dash/enc/w0rehjjrwe/out/v1/69a2a7041395406b970598f61680e7cf/cenc.mpd';
+        const videoSource = 'https://otte.cache.aiv-cdn.net/iad-nitro/live/clients/enc/nqon6hgp0k/out/v1/9e895e2c1c894a75ac6d21a4deddd5d3/cenc.mpd';
         
         const playBtn = document.getElementById('playBtn'); const rewindBtn = document.getElementById('rewindBtn'); const forwardBtn = document.getElementById('forwardBtn'); const progressContainer = document.getElementById('progressContainer'); const progressBar = document.getElementById('progressBar'); const seekPreviewBar = document.getElementById('seekPreviewBar'); const bufferBar = document.getElementById('bufferBar'); const muteBtn = document.getElementById('muteBtn'); const fullscreenBtn = document.getElementById('fullscreenBtn'); const loading = document.querySelector('.loading'); const drmError = document.getElementById('drmError'); const volumeSlider = document.getElementById('volumeSlider'); const volumeProgress = document.getElementById('volumeProgress'); const dtLeft = document.getElementById('dtLeft'); const dtRight = document.getElementById('dtRight'); const centerIndicator = document.getElementById('centerIndicator'); const centerIcon = document.getElementById('centerIcon');
         const liveIndicator = document.getElementById('liveIndicator'); const liveText = document.getElementById('liveText');
@@ -203,7 +203,7 @@
                 const player = new shaka.Player(video);
                 window.shakaPlayer = player;
                 
-                player.configure({ drm: { clearKeys: { '14eeabf30c14b7fbf3008c03099ce01': '117d2ac8dbc5429bd70af3433aa12158d' } } });
+                player.configure({ drm: { clearKeys: { 'f6564ec2aee819046328a0e153be574d': 'ff46a8a1031eb27ef22576a077c98ab7' } } });
                 player.addEventListener('error', onPlayerErrorEvent);
 
                 try {
