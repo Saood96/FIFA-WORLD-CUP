@@ -208,14 +208,14 @@
         const video = document.getElementById('video');
         const playerWrapper = document.getElementById('playerWrapper');
         
-        // 🔥 SERVER DATA EXTRACTED FROM FIREBASE JSON 🔥
+        // 🔥 Server Data Extracted From Your JSON 🔥
         const servers = [
-            { name: "FOX ONE", mpd: "https://otte.cache.aiv-cdn.net/iad-nitro/live/clients/enc/nqon6hgp0k/out/v1/9e895e2c1c894a75ac6d21a4deddd5d3/cenc.mpd", kid: "f6564ec2aee819046328a0e153be574d", key: "ff46a8a1031eb27ef22576a077c98ab7" },
-            { name: "WC", mpd: "https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/dash/enc/w0rehjjrwe/out/v1/69a2a7041395406b970598f61680e7cf/cenc.mpd", kid: "14eeabf30c14b7fbf3008c03099ce011", key: "17d2ac8dbc5429bd70af3433aa12158d" },
-            { name: "TSN", mpd: "https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/dash/enc/w0rehjjrwe/out/v1/69a2a7041395406b970598f61680e7cf/cenc.mpd", kid: "14eeabf30c14b7fbf3008c03099ce011", key: "17d2ac8dbc5429bd70af3433aa12158d" },
-            { name: "Fox 4k", mpd: "https://otte.cache.aiv-cdn.net/iad-nitro/live/clients/enc/cwghrcrum1/out/v1/fc40f22f10374517a2784e1d97cb23f4/cenc.mpd", kid: "1f68713028d439ec03be07f56c1d6213", key: "20093db6455160fffed4c394def3193d" },
-            { name: "FOX FIFA EVENT", mpd: "https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/dash/enc/ajfoeddkbz/out/v1/b78800b9b2304879b15843f455836829/cenc.mpd", kid: "f6564ec2aee819046328a0e153be574d", key: "ff46a8a1031eb27ef22576a077c98ab7" },
-            { name: "WC 2", mpd: "https://qp-pldt-live-bpk-ucd-prod.akamaized.net/bpk-tv/fifa_ppv1/default/index.mpd", kid: "2c338a117d434ce4bbe3569231af90f1", key: "a9633d901ee8a3f4f58ac314b5c5f4fb" }
+            { name: "FOX ONE", mpd: "https://otte.cache.aiv-cdn.net/iad-nitro/live/clients/enc/nqon6hgp0k/out/v1/9e895e2c1c894a75ac6d21a4deddd5d3/cenc.mpd", key: "f6564ec2aee819046328a0e153be574d:ff46a8a1031eb27ef22576a077c98ab7" },
+            { name: "WC", mpd: "https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/dash/enc/w0rehjjrwe/out/v1/69a2a7041395406b970598f61680e7cf/cenc.mpd", key: "14eeabf30c14b7fbf3008c03099ce011:17d2ac8dbc5429bd70af3433aa12158d" },
+            { name: "TSN", mpd: "https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/dash/enc/w0rehjjrwe/out/v1/69a2a7041395406b970598f61680e7cf/cenc.mpd", key: "14eeabf30c14b7fbf3008c03099ce011:17d2ac8dbc5429bd70af3433aa12158d" },
+            { name: "Fox 4k", mpd: "https://otte.cache.aiv-cdn.net/iad-nitro/live/clients/enc/cwghrcrum1/out/v1/fc40f22f10374517a2784e1d97cb23f4/cenc.mpd", key: "1f68713028d439ec03be07f56c1d6213:20093db6455160fffed4c394def3193d" },
+            { name: "FOX FIFA EVENT", mpd: "https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/dash/enc/ajfoeddkbz/out/v1/b78800b9b2304879b15843f455836829/cenc.mpd", key: "f6564ec2aee819046328a0e153be574d:ff46a8a1031eb27ef22576a077c98ab7" },
+            { name: "WC 2", mpd: "https://qp-pldt-live-bpk-ucd-prod.akamaized.net/bpk-tv/fifa_ppv1/default/index.mpd", key: "2c338a117d434ce4bbe3569231af90f1:a9633d901ee8a3f4f58ac314b5c5f4fb" }
         ];
 
         let currentServerIndex = 0; // Default loads Server 1
@@ -265,12 +265,14 @@
             currentQuality = 'Auto'; // Reset quality to Auto on change
             
             if (window.shakaPlayer) {
-                // Configure DRM keys
-                window.shakaPlayer.configure({
-                    drm: { clearKeys: { [srv.kid]: srv.key } }
-                });
-                
                 try {
+                    // Extract KID and KEY properly
+                    const [kidHex, keyHex] = srv.key.split(':');
+                    
+                    window.shakaPlayer.configure({
+                        drm: { clearKeys: { [kidHex]: keyHex } }
+                    });
+                    
                     loading.classList.add('active');
                     await window.shakaPlayer.load(srv.mpd);
                     loading.classList.remove('active');
@@ -319,7 +321,6 @@
             serverMenu.classList.toggle('show');
             resetControlsTimeoutOnAction();
         });
-
 
         // 🔥 Settings Menu Logic 🔥
         function renderMainMenu() {
@@ -431,7 +432,14 @@
         function onPlayerError(error) {
             console.error('Error code', error.code, 'object', error);
             loading.classList.remove('active');
-            drmError.innerHTML = '<strong>DRM Error</strong><br>Stream encrypted, expired, or key is incorrect.';
+            
+            let errorMsg = 'Stream encrypted, expired, or key is incorrect.';
+            // Catch CORS or Network Errors specifically to inform the user
+            if (error.code === shaka.util.Error.Code.BAD_HTTP_STATUS || error.code === shaka.util.Error.Code.HTTP_ERROR) {
+                errorMsg = 'Network/CORS Error: Stream server is blocking Github Pages. Please check browser console.';
+            }
+            
+            drmError.innerHTML = '<strong>Server Error</strong><br>' + errorMsg;
             drmError.classList.add('show');
         }
 
